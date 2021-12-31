@@ -56,3 +56,17 @@ func SwapEndianness(b []byte) []byte {
 	}
 	return o
 }
+
+var bigOne = big.NewInt(1)
+var bigZero = big.NewInt(0)
+
+func BigEndianBitsToBigInt(bits []bool) *big.Int {
+	result := big.NewInt(0)
+	for _, bit := range bits {
+		result.Mul(result, big.NewInt(2))
+		if bit {
+			result.Add(result, bigOne)
+		}
+	}
+	return result
+}
