@@ -7,6 +7,7 @@ import (
 
 // NodeType defines the type of node in the MT.
 type NodeType byte
+type Byte32 [32]byte
 
 const (
 	// NodeTypeMiddle indicates the type of middle Node that has children.
@@ -34,12 +35,14 @@ type Node struct {
 	// Entry is the data stored in a leaf node.
 	Entry [2]*Hash
 	// key is a cache used to avoid recalculating key
-	key *Hash
+	key           *Hash
+	KeyPreimage   *Byte32
+	ValuePreimage *Byte32
 }
 
 // NewNodeLeaf creates a new leaf node.
-func NewNodeLeaf(k, v *Hash) *Node {
-	return &Node{Type: NodeTypeLeaf, Entry: [2]*Hash{k, v}}
+func NewNodeLeaf(k, v *Hash, keyPreimage, valuePreimage *Byte32) *Node {
+	return &Node{Type: NodeTypeLeaf, Entry: [2]*Hash{k, v}, KeyPreimage: keyPreimage, ValuePreimage: valuePreimage}
 }
 
 // NewNodeMiddle creates a new middle node.
@@ -68,12 +71,16 @@ func NewNodeFromBytes(b []byte) (*Node, error) {
 		copy(n.ChildL[:], b[:ElemBytesLen])
 		copy(n.ChildR[:], b[ElemBytesLen:ElemBytesLen*2])
 	case NodeTypeLeaf:
-		if len(b) != 2*ElemBytesLen {
+		if len(b) != 4*ElemBytesLen {
 			return nil, ErrNodeBytesBadSize
 		}
 		n.Entry = [2]*Hash{{}, {}}
 		copy(n.Entry[0][:], b[0:32])
 		copy(n.Entry[1][:], b[32:64])
+		n.KeyPreimage = &Byte32{}
+		n.ValuePreimage = &Byte32{}
+		copy(n.KeyPreimage[:], b[64:96])
+		copy(n.ValuePreimage[:], b[96:128])
 	case NodeTypeEmpty:
 		break
 	default:
@@ -121,9 +128,17 @@ func (n *Node) Key() (*Hash, error) {
 func (n *Node) Value() []byte {
 	switch n.Type {
 	case NodeTypeMiddle: // {Type || ChildL || ChildR}
-		return append([]byte{byte(n.Type)}, append(n.ChildL[:], n.ChildR[:]...)...)
+		bytes := []byte{byte(n.Type)}
+		bytes = append(bytes, n.ChildL[:]...)
+		bytes = append(bytes, n.ChildR[:]...)
+		return bytes
 	case NodeTypeLeaf: // {Type || Data...}
-		return append([]byte{byte(n.Type)}, append(n.Entry[0][:], n.Entry[1][:]...)...)
+		bytes := []byte{byte(n.Type)}
+		bytes = append(bytes, n.Entry[0][:]...)
+		bytes = append(bytes, n.Entry[1][:]...)
+		bytes = append(bytes, n.KeyPreimage[:]...)
+		bytes = append(bytes, n.ValuePreimage[:]...)
+		return bytes
 	case NodeTypeEmpty: // {}
 		return []byte{}
 	default:
