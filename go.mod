@@ -9,3 +9,5 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/syndtr/goleveldb v1.0.1-0.20190923125748-758128399b1d
 )
+
+replace github.com/iden3/go-merkletree v0.1.0 => ./
