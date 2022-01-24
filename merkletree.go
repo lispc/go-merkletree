@@ -549,6 +549,14 @@ func (mt *MerkleTree) GetLeafNode(k *big.Int) (*Node, error) {
 	return nil, ErrReachedMaxLevel
 }
 
+func (mt *MerkleTree) GetLeafNodeByWord(kPreimage Byte32) (*Node, error) {
+	k, err := kPreimage.Hash()
+	if err != nil {
+		return nil, err
+	}
+	return mt.GetLeafNode(k)
+}
+
 // Update updates the value of a specified key in the MerkleTree, and updates
 // the path from the leaf to the Root with the new values. Returns the
 // CircomProcessorProof.
