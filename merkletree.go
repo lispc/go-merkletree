@@ -510,6 +510,45 @@ func (mt *MerkleTree) Get(k *big.Int) (*big.Int, *big.Int, []*Hash, error) {
 	return nil, nil, nil, ErrReachedMaxLevel
 }
 
+func (mt *MerkleTree) GetLeafNode(k *big.Int) (*Node, error) {
+	// verfy that k is valid and fit inside the Finite Field.
+	if !cryptoUtils.CheckBigIntInField(k) {
+		return nil, errors.New("key not inside the Finite Field")
+	}
+
+	kHash := NewHashFromBigInt(k)
+	path := getPath(mt.maxLevels, kHash[:])
+	nextKey := mt.rootKey
+	var siblings []*Hash
+	for i := 0; i < mt.maxLevels; i++ {
+		n, err := mt.GetNode(nextKey)
+		if err != nil {
+			return nil, err
+		}
+		switch n.Type {
+		case NodeTypeEmpty:
+			return NewNodeEmpty(), ErrKeyNotFound
+		case NodeTypeLeaf:
+			if bytes.Equal(kHash[:], n.Entry[0][:]) {
+				return n, nil
+			}
+			return n, ErrKeyNotFound
+		case NodeTypeMiddle:
+			if path[i] {
+				nextKey = n.ChildR
+				siblings = append(siblings, n.ChildL)
+			} else {
+				nextKey = n.ChildL
+				siblings = append(siblings, n.ChildR)
+			}
+		default:
+			return nil, ErrInvalidNodeFound
+		}
+	}
+
+	return nil, ErrReachedMaxLevel
+}
+
 // Update updates the value of a specified key in the MerkleTree, and updates
 // the path from the leaf to the Root with the new values. Returns the
 // CircomProcessorProof.
