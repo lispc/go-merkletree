@@ -1,4 +1,4 @@
-module github.com/iden3/go-merkletree
+module github.com/scroll-tech/go-merkletree
 
 go 1.14
 
