@@ -244,7 +244,7 @@ func (mt *MerkleTree) Snapshot(rootKey *Hash) (*MerkleTree, error) {
 
 // Add adds a Key & Value into the MerkleTree. Where the `k` determines the
 // path from the Root to the Leaf.
-func (mt *MerkleTree) Add(k, v *big.Int) error {
+func (mt *MerkleTree) Add(k, v *big.Int, kPreimage, vPreimage *Byte32) error {
 	// verify that the MerkleTree is writable
 	if !mt.writable {
 		return ErrNotWritable
@@ -267,7 +267,7 @@ func (mt *MerkleTree) Add(k, v *big.Int) error {
 
 	kHash := NewHashFromBigInt(k)
 	vHash := NewHashFromBigInt(v)
-	newNodeLeaf := NewNodeLeaf(kHash, vHash)
+	newNodeLeaf := NewNodeLeaf(kHash, vHash, kPreimage, vPreimage)
 	path := getPath(mt.maxLevels, kHash[:])
 
 	newRootKey, err := mt.addLeaf(tx, newNodeLeaf, mt.rootKey, 0, path)
@@ -285,6 +285,19 @@ func (mt *MerkleTree) Add(k, v *big.Int) error {
 	}
 
 	return nil
+}
+
+func (mt *MerkleTree) AddWord(kPreimage, vPreimage *Byte32) error {
+	k, err := kPreimage.Hash()
+	if err != nil {
+		return err
+	}
+	v, err := vPreimage.Hash()
+	if err != nil {
+		return err
+	}
+	err = mt.Add(k, v, kPreimage, vPreimage)
+	return err
 }
 
 // AddAndGetCircomProof does an Add, and returns a CircomProcessorProof
@@ -500,7 +513,7 @@ func (mt *MerkleTree) Get(k *big.Int) (*big.Int, *big.Int, []*Hash, error) {
 // Update updates the value of a specified key in the MerkleTree, and updates
 // the path from the leaf to the Root with the new values. Returns the
 // CircomProcessorProof.
-func (mt *MerkleTree) Update(k, v *big.Int) (*CircomProcessorProof, error) {
+func (mt *MerkleTree) Update(k, v *big.Int, kPreimage, vPreimage *Byte32) (*CircomProcessorProof, error) {
 	// verify that the MerkleTree is writable
 	if !mt.writable {
 		return nil, ErrNotWritable
@@ -546,7 +559,7 @@ func (mt *MerkleTree) Update(k, v *big.Int) (*CircomProcessorProof, error) {
 				cp.OldValue = n.Entry[1]
 				cp.Siblings = CircomSiblingsFromSiblings(siblings, mt.maxLevels)
 				// update leaf and upload to the root
-				newNodeLeaf := NewNodeLeaf(kHash, vHash)
+				newNodeLeaf := NewNodeLeaf(kHash, vHash, kPreimage, vPreimage)
 				_, err := mt.updateNode(tx, newNodeLeaf)
 				if err != nil {
 					return nil, err
@@ -582,6 +595,18 @@ func (mt *MerkleTree) Update(k, v *big.Int) (*CircomProcessorProof, error) {
 	}
 
 	return nil, ErrKeyNotFound
+}
+
+func (mt *MerkleTree) UpdateWord(kPreimage, vPreimage *Byte32) (*CircomProcessorProof, error) {
+	k, err := kPreimage.Hash()
+	if err != nil {
+		return nil, err
+	}
+	v, err := vPreimage.Hash()
+	if err != nil {
+		return nil, err
+	}
+	return mt.Update(k, v, kPreimage, vPreimage)
 }
 
 // Delete removes the specified Key from the MerkleTree and updates the path
