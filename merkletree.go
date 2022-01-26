@@ -301,38 +301,38 @@ func (mt *MerkleTree) AddWord(kPreimage, vPreimage *Byte32) error {
 }
 
 // AddAndGetCircomProof does an Add, and returns a CircomProcessorProof
-func (mt *MerkleTree) AddAndGetCircomProof(k,
-	v *big.Int) (*CircomProcessorProof, error) {
-	var cp CircomProcessorProof
-	cp.Fnc = 2
-	cp.OldRoot = mt.rootKey
-	gettedK, gettedV, _, err := mt.Get(k)
-	if err != nil && err != ErrKeyNotFound {
-		return nil, err
-	}
-	cp.OldKey = NewHashFromBigInt(gettedK)
-	cp.OldValue = NewHashFromBigInt(gettedV)
-	if bytes.Equal(cp.OldKey[:], HashZero[:]) {
-		cp.IsOld0 = true
-	}
-	_, _, siblings, err := mt.Get(k)
-	if err != nil && err != ErrKeyNotFound {
-		return nil, err
-	}
-	cp.Siblings = CircomSiblingsFromSiblings(siblings, mt.maxLevels)
-	//cp.Siblings = siblings
-
-	err = mt.Add(k, v)
-	if err != nil {
-		return nil, err
-	}
-
-	cp.NewKey = NewHashFromBigInt(k)
-	cp.NewValue = NewHashFromBigInt(v)
-	cp.NewRoot = mt.rootKey
-
-	return &cp, nil
-}
+//func (mt *MerkleTree) AddAndGetCircomProof(k,
+//	v *big.Int) (*CircomProcessorProof, error) {
+//	var cp CircomProcessorProof
+//	cp.Fnc = 2
+//	cp.OldRoot = mt.rootKey
+//	gettedK, gettedV, _, err := mt.Get(k)
+//	if err != nil && err != ErrKeyNotFound {
+//		return nil, err
+//	}
+//	cp.OldKey = NewHashFromBigInt(gettedK)
+//	cp.OldValue = NewHashFromBigInt(gettedV)
+//	if bytes.Equal(cp.OldKey[:], HashZero[:]) {
+//		cp.IsOld0 = true
+//	}
+//	_, _, siblings, err := mt.Get(k)
+//	if err != nil && err != ErrKeyNotFound {
+//		return nil, err
+//	}
+//	cp.Siblings = CircomSiblingsFromSiblings(siblings, mt.maxLevels)
+//	//cp.Siblings = siblings
+//
+//	err = mt.Add(k, v)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	cp.NewKey = NewHashFromBigInt(k)
+//	cp.NewValue = NewHashFromBigInt(v)
+//	cp.NewRoot = mt.rootKey
+//
+//	return &cp, nil
+//}
 
 // pushLeaf recursively pushes an existing oldLeaf down until its path diverges
 // from newLeaf, at which point both leafs are stored, all while updating the
@@ -1268,21 +1268,21 @@ func (mt *MerkleTree) DumpLeafs(rootKey *Hash) ([]byte, error) {
 
 // ImportDumpedLeafs parses and adds to the MerkleTree the dumped list of leafs
 // from the DumpLeafs function.
-func (mt *MerkleTree) ImportDumpedLeafs(b []byte) error {
-	for i := 0; i < len(b); i += 64 {
-		lr := b[i : i+64]
-		lB, err := NewBigIntFromHashBytes(lr[:32])
-		if err != nil {
-			return err
-		}
-		rB, err := NewBigIntFromHashBytes(lr[32:])
-		if err != nil {
-			return err
-		}
-		err = mt.Add(lB, rB)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
+//func (mt *MerkleTree) ImportDumpedLeafs(b []byte) error {
+//	for i := 0; i < len(b); i += 64 {
+//		lr := b[i : i+64]
+//		lB, err := NewBigIntFromHashBytes(lr[:32])
+//		if err != nil {
+//			return err
+//		}
+//		rB, err := NewBigIntFromHashBytes(lr[32:])
+//		if err != nil {
+//			return err
+//		}
+//		err = mt.Add(lB, rB)
+//		if err != nil {
+//			return err
+//		}
+//	}
+//	return nil
+//}
