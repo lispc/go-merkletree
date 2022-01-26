@@ -782,3 +782,40 @@ func testHashParsers(t *testing.T, a *big.Int) {
 //	assert.Nil(t, err)
 //	assert.Equal(t, cpp, cpp2)
 //}
+
+func TestMerkleTree_AddUpdateGetWord(t *testing.T) {
+	mt := newTestingMerkle(t, 10)
+	err := mt.AddWord(&Byte32{1}, &Byte32{2})
+	assert.Nil(t, err)
+	err = mt.AddWord(&Byte32{3}, &Byte32{4})
+	assert.Nil(t, err)
+	err = mt.AddWord(&Byte32{5}, &Byte32{6})
+	assert.Nil(t, err)
+
+	node, err := mt.GetLeafNodeByWord(&Byte32{1})
+	assert.Nil(t, err)
+	assert.Equal(t, &Byte32{2}, node.ValuePreimage)
+	node, err = mt.GetLeafNodeByWord(&Byte32{3})
+	assert.Nil(t, err)
+	assert.Equal(t, &Byte32{4}, node.ValuePreimage)
+	node, err = mt.GetLeafNodeByWord(&Byte32{5})
+	assert.Nil(t, err)
+	assert.Equal(t, &Byte32{6}, node.ValuePreimage)
+
+	_, err = mt.UpdateWord(&Byte32{1}, &Byte32{7})
+	assert.Nil(t, err)
+	_, err = mt.UpdateWord(&Byte32{3}, &Byte32{8})
+	assert.Nil(t, err)
+	_, err = mt.UpdateWord(&Byte32{5}, &Byte32{9})
+	assert.Nil(t, err)
+
+	node, err = mt.GetLeafNodeByWord(&Byte32{1})
+	assert.Nil(t, err)
+	assert.Equal(t, &Byte32{7}, node.ValuePreimage)
+	node, err = mt.GetLeafNodeByWord(&Byte32{3})
+	assert.Nil(t, err)
+	assert.Equal(t, &Byte32{8}, node.ValuePreimage)
+	node, err = mt.GetLeafNodeByWord(&Byte32{5})
+	assert.Nil(t, err)
+	assert.Equal(t, &Byte32{9}, node.ValuePreimage)
+}
