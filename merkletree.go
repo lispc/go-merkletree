@@ -549,7 +549,7 @@ func (mt *MerkleTree) GetLeafNode(k *big.Int) (*Node, error) {
 	return nil, ErrReachedMaxLevel
 }
 
-func (mt *MerkleTree) GetLeafNodeByWord(kPreimage Byte32) (*Node, error) {
+func (mt *MerkleTree) GetLeafNodeByWord(kPreimage *Byte32) (*Node, error) {
 	k, err := kPreimage.Hash()
 	if err != nil {
 		return nil, err
